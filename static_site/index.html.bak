@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Prediction Model Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card { margin-bottom: 2rem; }
+        .img-fluid { margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Diabetes Prediction Model Analysis</h1>
+
+        <!-- Dataset Overview -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Dataset Overview</h3>
+            </div>
+            <div class="card-body">
+                <p>The analysis was performed on the Pima Indians Diabetes dataset, which contains various health metrics
+                and a binary outcome indicating the presence of diabetes. The dataset includes 768 instances with 8 features:</p>
+                <ul>
+                    <li>Pregnancies</li>
+                    <li>Glucose</li>
+                    <li>Blood Pressure</li>
+                    <li>Skin Thickness</li>
+                    <li>Insulin</li>
+                    <li>BMI</li>
+                    <li>Diabetes Pedigree Function</li>
+                    <li>Age</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Feature Importance -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Feature Importance Analysis</h3>
+            </div>
+            <div class="card-body">
+                <p>The Random Forest algorithm was used to determine the most important features:</p>
+                <img src="feature_importance.png" alt="Feature Importance Plot" class="img-fluid">
+            </div>
+        </div>
+
+        <!-- Model Comparison -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Model Comparison</h3>
+            </div>
+            <div class="card-body">
+                <h4>Original Models (All Features)</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Accuracy</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1</th>
+                                <th>AUC</th>
+                                <th>K-fold Validation (Mean ± Std)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Random Forest</td>
+                                <td>0.7338</td>
+                                <td>0.6250</td>
+                                <td>0.6364</td>
+                                <td>0.6306</td>
+                                <td>0.8341</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>SVM</td>
+                                <td>0.7468</td>
+                                <td>0.6667</td>
+                                <td>0.5818</td>
+                                <td>0.6214</td>
+                                <td>0.8086</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>Logistic Regression</td>
+                                <td>0.7532</td>
+                                <td>0.6667</td>
+                                <td>0.6182</td>
+                                <td>0.6415</td>
+                                <td>0.8228</td>
+                                <td>77.08% ± 5.84%<br>Range: 66.23% - 85.71%</td>
+                            </tr>
+                            <tr>
+                                <td>Keras</td>
+                                <td>0.7403</td>
+                                <td>0.6230</td>
+                                <td>0.6909</td>
+                                <td>0.6552</td>
+                                <td>0.8011</td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4 class="mt-4">Optimized Models (Selected Features)</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Accuracy</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1</th>
+                                <th>AUC</th>
+                                <th>K-fold Validation (Mean ± Std)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Random Forest</td>
+                                <td>0.7532</td>
+                                <td>0.6349</td>
+                                <td>0.7273</td>
+                                <td>0.6780</td>
+                                <td>0.8144</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>SVM</td>
+                                <td>0.7662</td>
+                                <td>0.6792</td>
+                                <td>0.6545</td>
+                                <td>0.6667</td>
+                                <td>0.8118</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>Logistic Regression</td>
+                                <td>0.7662</td>
+                                <td>0.6863</td>
+                                <td>0.6364</td>
+                                <td>0.6604</td>
+                                <td>0.8112</td>
+                                <td>76.69% ± 5.88%<br>Range: 68.83% - 88.31%</td>
+                            </tr>
+                            <tr>
+                                <td>Keras</td>
+                                <td>0.7597</td>
+                                <td>0.6731</td>
+                                <td>0.6364</td>
+                                <td>0.6542</td>
+                                <td>0.8163</td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROC Curves -->
+        <div class="card">
+            <div class="card-header">
+                <h3>ROC Curves</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Original Models</h4>
+                        <img src="roc_curve_random_forest.png" alt="ROC Curve - Random Forest" class="img-fluid">
+                        <img src="roc_curve_svm.png" alt="ROC Curve - SVM" class="img-fluid">
+                        <img src="roc_curve_logistic_regression.png" alt="ROC Curve - Logistic Regression" class="img-fluid">
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Optimized Models</h4>
+                        <img src="optimized_roc_curve_random_forest.png" alt="ROC Curve - Optimized Random Forest" class="img-fluid">
+                        <img src="optimized_roc_curve_svm.png" alt="ROC Curve - Optimized SVM" class="img-fluid">
+                        <img src="optimized_roc_curve_logistic_regression.png" alt="ROC Curve - Optimized Logistic Regression" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Performance Distribution -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Model Performance Distribution</h3>
+            </div>
+            <div class="card-body">
+                <img src="kfold_comparison.png" alt="K-fold Cross-validation Results" class="img-fluid">
+                <p class="mt-3"><small>Box plot showing the distribution of scores across all metrics for both Logistic Regression models. Blue boxes represent the all-features model, while green boxes represent the selected-features model.</small></p>
+            </div>
+        </div>
+
+        <!-- Key Findings -->
+
+        <!-- Key Findings -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Key Findings</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>Glucose level is the most important feature for diabetes prediction</li>
+                    <li>The optimized models using only 4 features perform similarly to models using all features</li>
+                    <li>SVM and Logistic Regression achieved the highest accuracy (76.62%) with the reduced feature set</li>
+                    <li>The models show good discrimination ability with AUC values around 0.81-0.83</li>
+                    <li>K-fold cross-validation confirms the model stability with consistent performance across different data splits</li>
+                    <li>Both feature sets show similar ROC AUC scores (83.00%), indicating equivalent discriminative ability</li>
+                    <li>The selected features model maintains comparable performance while being more computationally efficient</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
