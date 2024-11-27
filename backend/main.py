@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import tensorflow as tf
 import logging
 import os
+import traceback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -55,44 +56,36 @@ class PredictionInput(BaseModel):
 @app.post("/predict")
 async def predict(input_data: PredictionInput):
     try:
-        # Validate model name
-        if input_data.model_name not in models:
-            raise HTTPException(status_code=400, detail=f"Invalid model name. Available models: {list(models.keys())}")
+        logger.info(f"Received prediction request for model: {input_data.model_name}")
 
-        # Prepare input features
-        features = np.array([[
-            input_data.glucose,
-            input_data.bmi,
-            input_data.dpf,
-            input_data.age
-        ]])
-
-        # Scale features
+        # Prepare features
+        features = np.array([[input_data.glucose, input_data.bmi, input_data.dpf, input_data.age]])
         features_scaled = scaler.transform(features)
 
-        # Make prediction
-        model = models[input_data.model_name]
+        model = models.get(input_data.model_name)
+        if not model:
+            raise HTTPException(status_code=400, detail=f"Model {input_data.model_name} not found")
+
         try:
             if input_data.model_name == 'keras':
-                prediction_prob = float(model.predict(features_scaled)[0][0])
+                logger.info("Making prediction with Keras model")
+                prediction_prob = float(model.predict(features_scaled, verbose=0)[0][0])
                 prediction = 1 if prediction_prob >= 0.5 else 0
                 probability = prediction_prob
             else:
                 prediction = int(model.predict(features_scaled)[0])
                 probability = float(model.predict_proba(features_scaled)[0][1])
 
-            logger.info(f"Prediction made successfully using {input_data.model_name} model")
-            return {
-                "prediction": prediction,
-                "probability": probability
-            }
+            logger.info(f"Prediction successful: {prediction}, probability: {probability}")
+            return {"prediction": prediction, "probability": probability}
+
         except Exception as e:
-            logger.error(f"Error making prediction with {input_data.model_name} model: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error making prediction: {str(e)}")
+            logger.error(f"Error during prediction: {str(e)}\n{traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail="Error making prediction")
 
     except Exception as e:
-        logger.error(f"Error in prediction endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Unexpected error: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/health")
 async def health_check():
