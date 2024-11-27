@@ -39,3 +39,26 @@ Response:
     "status": "healthy"
 }
 ```
+
+## Deployment
+
+### Render.com Deployment
+This application is configured for deployment on Render.com using the following files:
+- `requirements.txt`: Python dependencies
+- `render.yaml`: Render configuration
+- `build.sh`: Build script for deployment
+- `Procfile`: Process type declaration
+
+### Local Development
+
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. Run the server:
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at `http://localhost:8000`
