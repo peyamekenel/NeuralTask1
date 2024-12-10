@@ -108,30 +108,79 @@ def train_neural_network(train_x, train_y, val_x, val_y, unlabeled_x, input_shap
 
 def plot_metric_comparison(results, metric_name):
     plt.figure(figsize=(10, 6))
-    values = [metrics[metric_name] for metrics in results.values()]
-    plt.bar(results.keys(), values)
+
+    # Extract values and model names
+    models = list(results.keys())
+    values = [results[model][metric_name] for model in models]
+
+    # Define metrics where lower values are better
+    lower_is_better = any(term in metric_name.lower() for term in ["error", "time", "rmse", "mse"])
+
+    # Find the best value and its index
+    if lower_is_better:
+        best_value = min(values)
+        best_idx = values.index(best_value)
+    else:
+        best_value = max(values)
+        best_idx = values.index(best_value)
+
+    # Create color list with best performer highlighted
+    colors = ['lightgray'] * len(values)
+    colors[best_idx] = 'green'
+
+    # Create bar plot
+    bars = plt.bar(models, values, color=colors)
     plt.title(f'{metric_name} Comparison')
     plt.xlabel('Model')
     plt.ylabel(metric_name)
     plt.xticks(rotation=45)
+
+    # Add value labels on top of bars
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.4f}', ha='center', va='bottom')
+
+    # Highlight best performer in legend
+    best_model = models[best_idx]
+    plt.text(0.98, 0.98, f'Best: {best_model}\nValue: {best_value:.4f}',
+             transform=plt.gca().transAxes, ha='right', va='top',
+             bbox=dict(facecolor='white', alpha=0.8))
+
     plt.tight_layout()
     plt.savefig(f'{metric_name.lower().replace(" ", "_")}.png')
     plt.close()
 
 def plot_radar_chart(results):
-    metrics = ['Mean Distance Error', 'Median Distance Error', '90th Percentile Error']
+    metrics = ['Mean Distance Error', 'Median Distance Error', '90th Percentile Error', 'RMSE', 'MSE']
     angles = np.linspace(0, 2*np.pi, len(metrics), endpoint=False)
 
-    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'))
-    for model, metrics_dict in results.items():
+    # Normalize values for better visualization
+    normalized_results = {}
+    for metric in metrics:
+        values = [metrics_dict.get(metric, 0) for metrics_dict in results.values()]
+        min_val, max_val = min(values), max(values)
+        scale = max_val - min_val if max_val != min_val else 1
+        for model in results:
+            if model not in normalized_results:
+                normalized_results[model] = {}
+            normalized_results[model][metric] = (results[model].get(metric, 0) - min_val) / scale
+
+    fig, ax = plt.subplots(figsize=(12, 12), subplot_kw=dict(projection='polar'))
+    for model, metrics_dict in normalized_results.items():
         values = [metrics_dict[m] for m in metrics]
         values += values[:1]
         angles_plot = np.concatenate((angles, [angles[0]]))
         ax.plot(angles_plot, values, 'o-', linewidth=2, label=model)
+        ax.fill(angles_plot, values, alpha=0.25)
 
     ax.set_xticks(angles)
     ax.set_xticklabels(metrics)
     ax.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
+
+    # Add title with explanation
+    plt.title('Model Performance Comparison\n(Normalized metrics, lower is better)', pad=20)
+
     plt.savefig('radar_comparison.png')
     plt.close()
 
@@ -197,7 +246,9 @@ def main():
         "90th Percentile Error": np.percentile(nn_distances, 90),
         "Training Time (s)": nn_training_time,
         "Inference Time (s)": nn_inference_time,
-        "Inference Time per Sample (ms)": (nn_inference_time / len(X_val_nn)) * 1000
+        "Inference Time per Sample (ms)": (nn_inference_time / len(X_val_nn)) * 1000,
+        "RMSE": np.sqrt(np.mean(nn_distances**2)),
+        "MSE": np.mean(nn_distances**2)
     }
 
     traditional_results = train_and_evaluate_traditional_models(X_train, y_train, X_val, y_val)
@@ -211,7 +262,7 @@ def main():
     comparison_df.to_csv('model_comparison_results.csv')
 
     # Generate individual metric comparisons
-    for metric in ['Mean Distance Error', 'Median Distance Error', '90th Percentile Error', 'Training Time (s)', 'Inference Time (s)']:
+    for metric in ['Mean Distance Error', 'Median Distance Error', '90th Percentile Error', 'Training Time (s)', 'Inference Time (s)', 'RMSE', 'MSE']:
         plot_metric_comparison(all_results, metric)
 
     # Generate radar chart for error metrics

@@ -30,7 +30,9 @@ def evaluate_model_with_time(model, val_x, val_y, training_time):
         "90th Percentile Error": np.percentile(distances, 90),
         "Training Time (s)": training_time,
         "Inference Time (s)": inference_time,
-        "Inference Time per Sample (ms)": (inference_time / len(val_x)) * 1000
+        "Inference Time per Sample (ms)": (inference_time / len(val_x)) * 1000,
+        "RMSE": np.sqrt(np.mean(distances**2)),
+        "MSE": np.mean(distances**2)
     }
 
     return metrics, distances, predictions
@@ -94,6 +96,8 @@ def train_and_evaluate_traditional_models(X_train, y_train, X_val, y_val):
             "Training Time (s)": training_time,
             "Inference Time (s)": inference_time,
             "Inference Time per Sample (ms)": (inference_time / len(X_val)) * 1000,
+            "RMSE": np.sqrt(np.mean(distances**2)),
+            "MSE": np.mean(distances**2),
             "predictions": predictions
         }
 
