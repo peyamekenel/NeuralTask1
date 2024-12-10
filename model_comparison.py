@@ -4,6 +4,8 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor
 import xgboost as xgb
 
 def evaluate_model_with_time(model, val_x, val_y, training_time):
@@ -40,7 +42,9 @@ def train_and_evaluate_traditional_models(X_train, y_train, X_val, y_val):
     models = {
         "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
         "KNN": KNeighborsRegressor(n_neighbors=5),
-        "XGBoost": xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
+        "XGBoost": xgb.XGBRegressor(objective='reg:squarederror', random_state=42),
+        "SVR": SVR(kernel='rbf', C=1.0, epsilon=0.1),
+        "Decision Tree": DecisionTreeRegressor(random_state=42, max_depth=10)
     }
 
     results = {}
@@ -49,10 +53,14 @@ def train_and_evaluate_traditional_models(X_train, y_train, X_val, y_val):
         print(f"\nTraining {name}...")
         start_time = time.time()
 
-        if name == "XGBoost":
+        if name in ["XGBoost", "SVR"]:
             # Train separate models for x and y coordinates
-            model_x = xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
-            model_y = xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
+            if name == "XGBoost":
+                model_x = xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
+                model_y = xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
+            else:  # SVR
+                model_x = SVR(kernel='rbf', C=1.0, epsilon=0.1)
+                model_y = SVR(kernel='rbf', C=1.0, epsilon=0.1)
 
             model_x.fit(X_train, y_train[:, 0])
             model_y.fit(X_train, y_train[:, 1])
