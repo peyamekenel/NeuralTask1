@@ -106,6 +106,35 @@ def train_neural_network(train_x, train_y, val_x, val_y, unlabeled_x, input_shap
 
     return predictor
 
+def plot_metric_comparison(results, metric_name):
+    plt.figure(figsize=(10, 6))
+    values = [metrics[metric_name] for metrics in results.values()]
+    plt.bar(results.keys(), values)
+    plt.title(f'{metric_name} Comparison')
+    plt.xlabel('Model')
+    plt.ylabel(metric_name)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(f'{metric_name.lower().replace(" ", "_")}.png')
+    plt.close()
+
+def plot_radar_chart(results):
+    metrics = ['Mean Distance Error', 'Median Distance Error', '90th Percentile Error']
+    angles = np.linspace(0, 2*np.pi, len(metrics), endpoint=False)
+
+    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'))
+    for model, metrics_dict in results.items():
+        values = [metrics_dict[m] for m in metrics]
+        values += values[:1]
+        angles_plot = np.concatenate((angles, [angles[0]]))
+        ax.plot(angles_plot, values, 'o-', linewidth=2, label=model)
+
+    ax.set_xticks(angles)
+    ax.set_xticklabels(metrics)
+    ax.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
+    plt.savefig('radar_comparison.png')
+    plt.close()
+
 def main():
     SEED = 42
     os.environ['PYTHONHASHSEED'] = str(SEED)
@@ -180,6 +209,13 @@ def main():
     print(comparison_df)
 
     comparison_df.to_csv('model_comparison_results.csv')
+
+    # Generate individual metric comparisons
+    for metric in ['Mean Distance Error', 'Median Distance Error', '90th Percentile Error', 'Training Time (s)', 'Inference Time (s)']:
+        plot_metric_comparison(all_results, metric)
+
+    # Generate radar chart for error metrics
+    plot_radar_chart(all_results)
 
     plt.figure(figsize=(12, 6))
     for model_name, metrics in all_results.items():
