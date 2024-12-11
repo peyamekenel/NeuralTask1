@@ -152,15 +152,42 @@ def plot_metric_comparison(results, metric_name):
     plt.close()
 
 def plot_location_predictions(y_true, predictions, model_name):
-    plt.figure(figsize=(10, 8))
     plt.scatter(y_true[:, 0], y_true[:, 1], c='blue', label='Gerçek Konumlar', alpha=0.6)
     plt.scatter(predictions[:, 0], predictions[:, 1], c='red', label='Tahmin Edilen Konumlar', alpha=0.6)
-    plt.title(f'{model_name} - Konum Tahminleri vs Gerçek Konumlar')
+    plt.title(f'{model_name}')
     plt.xlabel('Normalize X Koordinatı')
     plt.ylabel('Normalize Y Koordinatı')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'location_predictions_{model_name.lower().replace(" ", "_")}.png')
+
+def plot_all_predictions(val_data, predictions_dict):
+    """Create a single figure with all model predictions side by side"""
+    plt.figure(figsize=(15, 10))
+    plt.suptitle('Model Konum Tahminleri Karşılaştırması', fontsize=14, y=1.02)
+
+    model_names = {
+        "Neural Network": "Sinir Ağı",
+        "Random Forest": "Rastgele Orman",
+        "KNN": "KNN",
+        "XGBoost": "XGBoost",
+        "SVR": "SVR",
+        "Decision Tree": "Karar Ağacı"
+    }
+
+    for idx, (model_name, predictions) in enumerate(predictions_dict.items()):
+        plt.subplot(2, 3, idx + 1)
+        y_true = val_data["nn"] if model_name == "Neural Network" else val_data["traditional"]
+
+        plt.scatter(y_true[:, 0], y_true[:, 1], c='blue', label='Gerçek', alpha=0.6, s=20)
+        plt.scatter(predictions[:, 0], predictions[:, 1], c='red', label='Tahmin', alpha=0.6, s=20)
+        plt.title(model_names[model_name])
+        plt.xlabel('Normalize X')
+        plt.ylabel('Normalize Y')
+        plt.legend(fontsize=8)
+        plt.grid(True)
+
+    plt.tight_layout()
+    plt.savefig('location_predictions_combined.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 # PLACEHOLDER: Next function (main)
@@ -247,9 +274,19 @@ def main():
         plot_metric_comparison(all_results, metric)
 
     # Generate location prediction plots
-    plot_location_predictions(y_val_nn, nn_predictions, "Neural Network")
-    for model_name, metrics in traditional_results.items():
-        plot_location_predictions(y_val, metrics["predictions"], model_name)
+    predictions_dict = {
+        "Neural Network": nn_predictions,
+        "Random Forest": np.array(traditional_results["Random Forest"]["predictions"]),
+        "KNN": np.array(traditional_results["KNN"]["predictions"]),
+        "XGBoost": np.array(traditional_results["XGBoost"]["predictions"]),
+        "SVR": np.array(traditional_results["SVR"]["predictions"]),
+        "Decision Tree": np.array(traditional_results["Decision Tree"]["predictions"])
+    }
+    val_data = {
+        "nn": y_val_nn,
+        "traditional": y_val
+    }
+    plot_all_predictions(val_data, predictions_dict)
 
     plt.figure(figsize=(12, 6))
     for model_name, metrics in all_results.items():
