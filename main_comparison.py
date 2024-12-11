@@ -151,38 +151,19 @@ def plot_metric_comparison(results, metric_name):
     plt.savefig(f'{metric_name.lower().replace(" ", "_")}.png')
     plt.close()
 
-def plot_radar_chart(results):
-    metrics = ['Mean Distance Error', 'Median Distance Error', '90th Percentile Error', 'RMSE', 'MSE']
-    angles = np.linspace(0, 2*np.pi, len(metrics), endpoint=False)
-
-    # Normalize values for better visualization
-    normalized_results = {}
-    for metric in metrics:
-        values = [metrics_dict.get(metric, 0) for metrics_dict in results.values()]
-        min_val, max_val = min(values), max(values)
-        scale = max_val - min_val if max_val != min_val else 1
-        for model in results:
-            if model not in normalized_results:
-                normalized_results[model] = {}
-            normalized_results[model][metric] = (results[model].get(metric, 0) - min_val) / scale
-
-    fig, ax = plt.subplots(figsize=(12, 12), subplot_kw=dict(projection='polar'))
-    for model, metrics_dict in normalized_results.items():
-        values = [metrics_dict[m] for m in metrics]
-        values += values[:1]
-        angles_plot = np.concatenate((angles, [angles[0]]))
-        ax.plot(angles_plot, values, 'o-', linewidth=2, label=model)
-        ax.fill(angles_plot, values, alpha=0.25)
-
-    ax.set_xticks(angles)
-    ax.set_xticklabels(metrics)
-    ax.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
-
-    # Add title with explanation
-    plt.title('Model Performance Comparison\n(Normalized metrics, lower is better)', pad=20)
-
-    plt.savefig('radar_comparison.png')
+def plot_location_predictions(y_true, predictions, model_name):
+    plt.figure(figsize=(10, 8))
+    plt.scatter(y_true[:, 0], y_true[:, 1], c='blue', label='Gerçek Konumlar', alpha=0.6)
+    plt.scatter(predictions[:, 0], predictions[:, 1], c='red', label='Tahmin Edilen Konumlar', alpha=0.6)
+    plt.title(f'{model_name} - Konum Tahminleri vs Gerçek Konumlar')
+    plt.xlabel('Normalize X Koordinatı')
+    plt.ylabel('Normalize Y Koordinatı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f'location_predictions_{model_name.lower().replace(" ", "_")}.png')
     plt.close()
+
+# PLACEHOLDER: Next function (main)
 
 def main():
     SEED = 42
@@ -265,8 +246,10 @@ def main():
     for metric in ['Mean Distance Error', 'Median Distance Error', '90th Percentile Error', 'Training Time (s)', 'Inference Time (s)', 'RMSE', 'MSE']:
         plot_metric_comparison(all_results, metric)
 
-    # Generate radar chart for error metrics
-    plot_radar_chart(all_results)
+    # Generate location prediction plots
+    plot_location_predictions(y_val_nn, nn_predictions, "Neural Network")
+    for model_name, metrics in traditional_results.items():
+        plot_location_predictions(y_val, metrics["predictions"], model_name)
 
     plt.figure(figsize=(12, 6))
     for model_name, metrics in all_results.items():
